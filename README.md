@@ -1,6 +1,6 @@
 # UK business check API for Python
 
-> **Company checks: coming soon.** The company check opens when Companies House and HMRC VAT are both connected. UK and EU EORI checks work today with a free key from https://api.tychelabs.net/signup
+> **UK VAT: source unavailable for now.** Company, EORI and charity checks are live. UK VAT checks wait for HMRC production access: until then `vat` is `null`, `meta.sources.hmrc` is `unavailable` and `vat()` returns 503 (not counted). Get a free key at https://api.tychelabs.net/signup
 
 Check a UK company in one call. You get Companies House status, age, overdue flags and filings. HMRC validates the VAT number, the Charity Commission gives charity status, and plain risk flags sit on top. Officer and PSC data come back as counts only. Standard library only, Python 3.9+.
 
@@ -17,7 +17,7 @@ api = BusinessCheck()  # reads TYCHE_API_KEY
 c = api.check("16716814", vat="GB553557881")["data"]
 
 print(c["company"]["name"], c["company"]["status"], c["company"]["ageYears"])
-print("VAT valid:", c["vat"]["valid"])
+print("VAT valid:", (c["vat"] or {}).get("valid"))  # None until HMRC is connected
 for f in c["flags"]:
     print(f["severity"], f["message"])
 
