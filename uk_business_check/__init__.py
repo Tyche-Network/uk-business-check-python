@@ -1,6 +1,6 @@
 """UK business check API client: Companies House, HMRC VAT and charity status in one call.
 
-Docs: https://api.tychelabs.net/docs/business  Coming soon: https://api.tychelabs.net/business-api
+Docs: https://api.tychelabs.net/docs/business  Product page: https://api.tychelabs.net/business
 Standard library only (Python 3.9+).
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ class _Client:
     def __init__(self, api_key: Optional[str] = None, base_url: str = "https://api.tychelabs.net", timeout: float = 15.0):
         self.api_key = api_key or os.environ.get("TYCHE_API_KEY")
         if not self.api_key:
-            raise ValueError("Pass api_key or set TYCHE_API_KEY. The business check API is coming soon: https://api.tychelabs.net/business-api")
+            raise ValueError("Pass api_key or set TYCHE_API_KEY. Get a free key at https://api.tychelabs.net/signup")
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
 
@@ -70,10 +70,13 @@ class BusinessCheck(_Client):
     >>> c["company"]["status"], c["risk"], c["flags"]
     """
 
-    def check(self, company_number: str, vat: Optional[str] = None, include: Optional[Iterable[str]] = None) -> Any:
+    def check(self, company_number: str, vat: Optional[str] = None, include: Optional[Iterable[str]] = None,
+              eori: Optional[str] = None) -> Any:
         q = {}
         if vat:
             q["vat"] = vat
+        if eori:
+            q["eori"] = eori
         if include is not None:
             q["include"] = ",".join(include)
         path = "/v1/companies/" + urllib.parse.quote(company_number, safe="")
@@ -85,8 +88,17 @@ class BusinessCheck(_Client):
     def vat(self, vat_number: str) -> Any:
         return self._req("GET", "/v1/vat/" + urllib.parse.quote(vat_number, safe=""))
 
-    def watch(self, company_number: str, url: str) -> Any:
-        return self._req("POST", "/v1/watches", {"companyNumber": company_number, "url": url})
+    def eori(self, eori_number: str) -> Any:
+        """Validate a UK (GB/XI) or EU EORI number."""
+        return self._req("GET", "/v1/eori/" + urllib.parse.quote(eori_number, safe=""))
+
+    def watch(self, company_number: str, url: str, events: Optional[Iterable[str]] = None, email_digest: bool = False) -> Any:
+        body = {"companyNumber": company_number, "url": url}
+        if events is not None:
+            body["events"] = list(events)
+        if email_digest:
+            body["emailDigest"] = True
+        return self._req("POST", "/v1/watches", body)
 
 
 def verify_webhook(raw_body: bytes, header: str, secret: str, tolerance_secs: int = 300) -> bool:

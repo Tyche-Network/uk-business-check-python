@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tychelabs-uk-business-check"
-version = "1.0.0"
+version = "1.1.0"
 description = "UK business check API client - Companies House, HMRC VAT number validation and charity status in one call, with risk flags."
 readme = "README.md"
 requires-python = ">=3.9"
